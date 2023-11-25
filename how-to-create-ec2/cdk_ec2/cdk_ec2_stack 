@@ -1,0 +1,38 @@
+from aws_cdk import (
+    Stack,
+    aws_ec2 as ec2,
+    CfnOutput,
+    CfnTag,
+)
+
+from constructs import Construct
+
+
+class CdkEc2Stack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        existing_vpc = ec2.Vpc.from_vpc_attributes(
+            self, 'ExistingVPC',
+            vpc_id='vpc-13606469',
+            availability_zones=['us-east-1a', 'us-east-1e'],
+            public_subnet_ids=['subnet-6812e737', 'subnet-08aa9636'],
+            #private_subnet_ids=['PRIVATE_SUBNET_ID_1', 'PRIVATE_SUBNET_ID_2']
+        )
+        security_group1 = ec2.SecurityGroup.from_security_group_id(
+            self, 'SG1', 'sg-07bbecd352461ed5a')
+        
+
+        instance = ec2.Instance(
+            self,
+            "MyInstance",
+            instance_type=ec2.InstanceType("t2.micro"),
+            machine_image=ec2.MachineImage.latest_amazon_linux2023(),
+            vpc=existing_vpc,
+            security_group=security_group1,
+            associate_public_ip_address=True,
+            key_name="ejemplo",
+        )
+
+        # Output Instance ID
+        CfnOutput(self, "InstanceId", value=instance.instance_id)
